@@ -1,4 +1,4 @@
-# Lumina — Photo Gallery
+﻿# Lumina — Photo Gallery
 
 React + Vite + Tailwind CSS photo gallery using the Picsum Photos API.
 
@@ -18,11 +18,11 @@ npm run dev
 - `useCallback` on the search handler, `useMemo` on the filtered list
 
 ## File map
-- `src/hooks/useFetchPhotos.js` – fetch logic
-- `src/reducers/favouritesReducer.js` – reducer + localStorage initialiser
-- `src/components/Gallery.jsx` – uses the hook, reducer, useCallback, useMemo
+- `src/hooks/useFetchPhotos.js` — fetch logic
+- `src/reducers/favouritesReducer.js` — reducer + localStorage initialiser
+- `src/components/Gallery.jsx` — uses the hook, reducer, useCallback, useMemo
 - `src/components/PhotoCard.jsx`, `SearchBar.jsx`, `Spinner.jsx`
-- `src/index.css` – Tailwind import + glass / skeuomorphic styles
+- `src/index.css` — Tailwind import + glass / skeuomorphic styles
 
 ## Video talking points
 1. **Hook**: returns photos, loading, error. On failure the catch sets `error`; `res.ok` is checked because fetch doesn't reject on 404/500. AbortController cancels on unmount.
