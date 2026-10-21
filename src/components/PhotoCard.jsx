@@ -33,7 +33,7 @@ function PhotoCard({ photo, isFavourite, onToggle, onOpen, onEdit, onDelete }) {
       <div className="photo-well relative aspect-[4/3] overflow-hidden rounded-[18px]">
         <button type="button" className="h-full w-full cursor-zoom-in" onClick={() => onOpen(photo)} aria-label={`Open photo by ${photo.author}`}>
         <img
-          src={`https://picsum.photos/id/${photo.id}/640/480`}
+          src={photo.src || `https://picsum.photos/id/${photo.id}/640/480`}
           alt={`Photo by ${photo.author}`}
           loading="lazy"
           draggable="false"
