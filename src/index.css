@@ -1,0 +1,227 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --color-ink: #0b0d2a;
+}
+
+@layer base {
+  html {
+    background: var(--color-ink);
+    color-scheme: dark;
+  }
+  body {
+    @apply font-sans antialiased;
+    background: var(--color-ink);
+    min-height: 100vh;
+  }
+  :focus-visible {
+    outline: 2px solid #7be7ff;
+    outline-offset: 3px;
+  }
+}
+
+@layer components {
+  /* ---------- Ambient aurora (the light the glass refracts) ---------- */
+  .aurora {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    background: radial-gradient(120% 90% at 50% 0%, #1b1a52 0%, #0b0d2a 60%);
+  }
+  .blob {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(80px);
+    opacity: 0.55;
+    animation: drift 26s ease-in-out infinite alternate;
+  }
+  .blob-violet { width: 46vmax; height: 46vmax; left: -12vmax; top: -10vmax; background: #6d4dff; }
+  .blob-cyan   { width: 38vmax; height: 38vmax; right: -10vmax; top: 22vh; background: #19c6ee; animation-delay: -9s; }
+  .blob-rose   { width: 34vmax; height: 34vmax; left: 22vw; bottom: -16vmax; background: #ff5f93; animation-delay: -16s; }
+
+  /* ---------- Liquid glass surface ---------- */
+  .glass {
+    position: relative;
+    background: linear-gradient(145deg, rgba(255,255,255,0.20), rgba(255,255,255,0.05));
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.22);
+    box-shadow:
+      inset 0 1.5px 0 rgba(255,255,255,0.55),   /* top specular edge */
+      inset 0 -1px 0 rgba(255,255,255,0.10),
+      inset 0 0 28px rgba(255,255,255,0.06),    /* inner glow */
+      0 24px 48px -18px rgba(3,4,28,0.75),      /* depth */
+      0 3px 8px rgba(3,4,28,0.35);
+  }
+  /* diagonal sheen across the glass */
+  .glass::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(115deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 38%);
+    mix-blend-mode: soft-light;
+  }
+
+  /* ---------- Spatial tilt card ---------- */
+  .tilt-card {
+    --rx: 0deg;
+    --ry: 0deg;
+    --mx: 50%;
+    --my: 0%;
+    transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry));
+    transition: transform 0.3s cubic-bezier(.2,.8,.2,1), box-shadow 0.3s;
+    will-change: transform;
+  }
+  .tilt-card:hover {
+    box-shadow:
+      inset 0 1.5px 0 rgba(255,255,255,0.6),
+      inset 0 -1px 0 rgba(255,255,255,0.12),
+      inset 0 0 28px rgba(255,255,255,0.08),
+      0 38px 60px -20px rgba(3,4,28,0.85),
+      0 6px 14px rgba(3,4,28,0.4);
+  }
+  /* light that follows the pointer */
+  .tilt-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+    background: radial-gradient(260px circle at var(--mx) var(--my), rgba(255,255,255,0.28), transparent 60%);
+  }
+  .tilt-card:hover::after { opacity: 1; }
+
+  /* ---------- Skeuomorphic parts ---------- */
+  /* photo sits recessed, like a print under the glass */
+  .photo-well {
+    background: #12143a;
+    box-shadow:
+      inset 0 3px 10px rgba(0,0,0,0.55),
+      0 1px 0 rgba(255,255,255,0.28);
+  }
+  .photo-well::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12), inset 0 8px 18px rgba(0,0,0,0.35);
+  }
+
+  /* search field is pressed into the surface */
+  .inset-field {
+    background: rgba(8,10,40,0.38);
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow:
+      inset 0 3px 8px rgba(0,0,0,0.5),
+      inset 0 -1px 0 rgba(255,255,255,0.12),
+      0 1px 0 rgba(255,255,255,0.28);
+    transition: box-shadow 0.2s, background 0.2s;
+  }
+  .inset-field:focus {
+    outline: none;
+    background: rgba(8,10,40,0.5);
+    box-shadow:
+      inset 0 3px 8px rgba(0,0,0,0.55),
+      0 0 0 2px rgba(123,231,255,0.7),
+      0 0 22px rgba(123,231,255,0.35);
+  }
+
+  /* heart is a convex glass button that physically presses down */
+  .orb-button {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 9999px;
+    color: rgba(255,255,255,0.9);
+    cursor: pointer;
+    background:
+      radial-gradient(circle at 30% 22%, rgba(255,255,255,0.65), rgba(255,255,255,0.10) 55%),
+      rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.35);
+    box-shadow:
+      inset 0 2px 3px rgba(255,255,255,0.7),
+      inset 0 -4px 8px rgba(0,0,0,0.28),
+      0 8px 16px -4px rgba(3,4,28,0.6);
+    transition: transform 0.12s, box-shadow 0.12s, background 0.25s, color 0.25s;
+  }
+  .orb-button:hover { transform: translateY(-1px); }
+  .orb-button:active {
+    transform: translateY(2px);
+    box-shadow:
+      inset 0 3px 7px rgba(0,0,0,0.45),
+      0 1px 2px rgba(3,4,28,0.5);
+  }
+  .orb-button.is-active {
+    color: #fff;
+    background:
+      radial-gradient(circle at 30% 22%, rgba(255,255,255,0.75), rgba(255,255,255,0) 50%),
+      linear-gradient(160deg, #ff7aa6, #e6256b);
+    border-color: rgba(255,255,255,0.5);
+    box-shadow:
+      inset 0 2px 3px rgba(255,255,255,0.8),
+      inset 0 -4px 8px rgba(120,0,40,0.4),
+      0 0 24px rgba(255,80,140,0.55),
+      0 8px 16px -4px rgba(3,4,28,0.6);
+  }
+  .orb-button.is-active .heart { animation: pop 0.35s cubic-bezier(.3,1.6,.5,1); }
+
+  /* logo: a small glass sphere */
+  .logo-orb {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 9999px;
+    background:
+      radial-gradient(circle at 30% 24%, #fff 0%, rgba(255,255,255,0.1) 38%, transparent 40%),
+      radial-gradient(circle at 65% 75%, #ff7aa6 0%, transparent 60%),
+      linear-gradient(145deg, #7be7ff, #6d4dff);
+    box-shadow:
+      inset 0 -5px 10px rgba(0,0,40,0.4),
+      inset 0 2px 3px rgba(255,255,255,0.7),
+      0 8px 18px -4px rgba(3,4,28,0.7);
+  }
+
+  /* loading spinner: glass ring */
+  .spinner-ring {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 9999px;
+    border: 5px solid rgba(255,255,255,0.15);
+    border-top-color: #7be7ff;
+    box-shadow: 0 0 24px rgba(123,231,255,0.4), inset 0 2px 4px rgba(255,255,255,0.25);
+    animation: spin 0.9s linear infinite;
+  }
+
+  /* one orchestrated entrance when the photos arrive */
+  .card-rise { animation: rise 0.6s cubic-bezier(.2,.8,.2,1) both; }
+}
+
+@keyframes drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(6vmax, 4vmax, 0) scale(1.15); }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pop { 0% { transform: scale(0.6); } 100% { transform: scale(1); } }
+@keyframes rise {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Fallback when backdrop blur isn't supported */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass { background: rgba(30, 32, 80, 0.85); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blob, .card-rise, .orb-button.is-active .heart { animation: none; }
+  .tilt-card { transform: none !important; transition: none; }
+  .spinner-ring { animation-duration: 2.4s; }
+}
