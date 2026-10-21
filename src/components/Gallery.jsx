@@ -9,9 +9,18 @@ import SearchBar from "./SearchBar";
 import PhotoCard from "./PhotoCard";
 import Spinner from "./Spinner";
 
+function readStorage(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
+  catch { return fallback; }
+}
+
 export default function Gallery() {
   const { photos, loading, error } = useFetchPhotos();
   const [query, setQuery] = useState("");
+  const [hiddenIds, setHiddenIds] = useState(() => readStorage("lumina:hidden", []));
+  const [edits, setEdits] = useState(() => readStorage("lumina:edits", {}));
+  const [activePhoto, setActivePhoto] = useState(null);
+  const [editingPhoto, setEditingPhoto] = useState(null);
   const [favourites, dispatch] = useReducer(
     favouritesReducer,
     [],
@@ -36,13 +45,27 @@ export default function Gallery() {
     []
   );
 
+  const handleDelete = (id) => {
+    if (!window.confirm("Remove this photo from your gallery?")) return;
+    const next = [...hiddenIds, id]; setHiddenIds(next); localStorage.setItem("lumina:hidden", JSON.stringify(next));
+    if (activePhoto?.id === id) setActivePhoto(null);
+  };
+  const saveEdit = (event) => {
+    event.preventDefault();
+    const next = { ...edits, [editingPhoto.id]: { author: editingPhoto.author, title: editingPhoto.title } };
+    setEdits(next); localStorage.setItem("lumina:edits", JSON.stringify(next)); setEditingPhoto(null);
+  };
+
   // useMemo: the filtered list is only recalculated when photos or query change,
   // not on every re-render (e.g. when a heart is toggled).
   const filteredPhotos = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return photos;
-    return photos.filter((p) => p.author.toLowerCase().includes(q));
-  }, [photos, query]);
+    return photos.filter((original) => {
+      if (hiddenIds.includes(original.id)) return false;
+      const p = { ...original, ...edits[original.id] };
+      return !q || p.author.toLowerCase().includes(q) || (p.title || "").toLowerCase().includes(q);
+    }).map((p) => ({ ...p, ...edits[p.id] }));
+  }, [photos, query, hiddenIds, edits]);
 
   return (
     <>
@@ -94,12 +117,25 @@ export default function Gallery() {
                   photo={photo}
                   isFavourite={favourites.includes(photo.id)}
                   onToggle={handleToggle}
+                  onOpen={setActivePhoto}
+                  onEdit={setEditingPhoto}
+                  onDelete={handleDelete}
                 />
               </li>
             ))}
           </ul>
         )}
       </main>
+      {activePhoto && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4" role="dialog" aria-modal="true" aria-label="Photo viewer" onClick={() => setActivePhoto(null)}>
+        <button className="absolute right-5 top-4 text-4xl text-white" onClick={() => setActivePhoto(null)} aria-label="Close viewer">×</button>
+        <button className="absolute left-4 text-4xl text-white" onClick={(e) => { e.stopPropagation(); const i=filteredPhotos.findIndex(p=>p.id===activePhoto.id); setActivePhoto(filteredPhotos[(i-1+filteredPhotos.length)%filteredPhotos.length]); }} aria-label="Previous photo">‹</button>
+        <figure className="max-h-full max-w-6xl text-center" onClick={(e) => e.stopPropagation()}>
+          <img className="mx-auto max-h-[82vh] max-w-full rounded-xl object-contain" src={`https://picsum.photos/id/${activePhoto.id}/1600/1200`} alt={activePhoto.title || `Photo by ${activePhoto.author}`} />
+          <figcaption className="mt-3 text-white">{activePhoto.title ? `${activePhoto.title} · ` : ""}{activePhoto.author}</figcaption>
+        </figure>
+        <button className="absolute right-4 text-4xl text-white" onClick={(e) => { e.stopPropagation(); const i=filteredPhotos.findIndex(p=>p.id===activePhoto.id); setActivePhoto(filteredPhotos[(i+1)%filteredPhotos.length]); }} aria-label="Next photo">›</button>
+      </div>}
+      {editingPhoto && <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/75 p-4" role="dialog" aria-modal="true"><form onSubmit={saveEdit} className="glass w-full max-w-md space-y-4 rounded-3xl p-6"><h2 className="text-xl font-semibold text-white">Edit photo details</h2><label className="block text-sm text-white/80">Photographer<input className="inset-field mt-1 w-full rounded-xl p-3 text-white" value={editingPhoto.author} onChange={e=>setEditingPhoto({...editingPhoto, author:e.target.value})} required /></label><label className="block text-sm text-white/80">Title<input className="inset-field mt-1 w-full rounded-xl p-3 text-white" value={editingPhoto.title || ""} onChange={e=>setEditingPhoto({...editingPhoto, title:e.target.value})} /></label><div className="flex justify-end gap-3"><button type="button" className="text-white/70" onClick={()=>setEditingPhoto(null)}>Cancel</button><button className="rounded-full bg-cyan-300 px-5 py-2 font-semibold text-slate-900">Save</button></div></form></div>}
     </>
   );
 }

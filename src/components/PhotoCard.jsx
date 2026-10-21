@@ -1,6 +1,6 @@
 import { memo, useRef } from "react";
 
-function PhotoCard({ photo, isFavourite, onToggle }) {
+function PhotoCard({ photo, isFavourite, onToggle, onOpen, onEdit, onDelete }) {
   const cardRef = useRef(null);
 
   // Tilt toward the pointer by writing CSS variables directly,
@@ -31,6 +31,7 @@ function PhotoCard({ photo, isFavourite, onToggle }) {
       className="tilt-card glass rounded-[28px] p-3"
     >
       <div className="photo-well relative aspect-[4/3] overflow-hidden rounded-[18px]">
+        <button type="button" className="h-full w-full cursor-zoom-in" onClick={() => onOpen(photo)} aria-label={`Open photo by ${photo.author}`}>
         <img
           src={`https://picsum.photos/id/${photo.id}/640/480`}
           alt={`Photo by ${photo.author}`}
@@ -38,6 +39,7 @@ function PhotoCard({ photo, isFavourite, onToggle }) {
           draggable="false"
           className="h-full w-full object-cover"
         />
+        </button>
       </div>
 
       <div className="flex items-center justify-between gap-3 px-2 pb-1 pt-4">
@@ -67,6 +69,10 @@ function PhotoCard({ photo, isFavourite, onToggle }) {
             <path d="M12 20.5s-7.5-4.6-9.2-9.4C1.6 7.8 3.6 4.5 7 4.5c2 0 3.5 1.1 5 3 1.5-1.9 3-3 5-3 3.4 0 5.4 3.3 4.2 6.6-1.7 4.8-9.2 9.4-9.2 9.4Z" />
           </svg>
         </button>
+      </div>
+      <div className="flex gap-2 px-2 pb-2">
+        <button type="button" className="text-xs text-white/70 hover:text-white" onClick={() => onEdit(photo)}>Edit details</button>
+        <button type="button" className="ml-auto text-xs text-rose-200 hover:text-rose-100" onClick={() => onDelete(photo.id)}>Remove</button>
       </div>
     </article>
   );
